@@ -1,6 +1,6 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
-
+/*------------------------------------------------------------------------------------*/
 // class declaration
 class Gaussian
 {
@@ -27,16 +27,24 @@ public:
 	Gaussian add(Gaussian);
 };
 
+/*------------------------------------------------------------------------------------*/
+// Constructor functions: determine how a new object will be initiated.
+// Equivalent to: def __init__(self, variable1, variable2, ..., variablen):
 
+
+// Constructor function 1: initiate an object without specifying the average and variance
 Gaussian::Gaussian() {
 	mu = 0;
 	sigma2 = 1;
 }
 
+// Constructor function 2: initiate an object specifying the average and variance
 Gaussian::Gaussian(float average, float sigma) {
 	mu = average;
 	sigma2 = sigma;
 }
+/*----------------------------------------------------------------------------------*/
+// Class Methods
 
 void Gaussian::setMu(float average) {
 	mu = average;
