@@ -1,5 +1,4 @@
 import networkx as nx
-import pickle
 
 map_10_dict = {
     0: {'pos': (0.7798606835438107, 0.6922727646627362), 'connections': [7, 6, 5]},
@@ -64,11 +63,6 @@ class Map:
         self.intersections = nx.get_node_attributes(G, "pos")
         self.roads = [list(G[node]) for node in G.nodes()]
 
-    def save(self, filename):
-        with open(filename, 'wb') as f:
-            pickle.dump(self._graph, f)
-
-
 def load_map_graph(map_dict):
     G = nx.Graph()
     for node in map_dict.keys():
@@ -106,14 +100,3 @@ def load_map_40():
         node_trace['marker']['color'].append(color)
         node_info = "Intersection " + str(node)
         node_trace['text'].append(node_info)
-
-    fig = Figure(data=Data([edge_trace, node_trace]),
-                 layout=Layout(
-                     title='<br>Network graph made with Python',
-                     titlefont=dict(size=16),
-                     showlegend=False,
-                     hovermode='closest',
-                     margin=dict(b=20, l=5, r=5, t=40),
-
-                     xaxis=XAxis(showgrid=False, zeroline=False, showticklabels=False),
-                     yaxis=YAxis(showgrid=False, zeroline=False, showticklabels=False)))

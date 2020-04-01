@@ -1,20 +1,18 @@
 # Use A* search to implement a "Google-maps" style route planning algorithm.
-
 import math
 
+
 class PathPlanner():
-    """Construct a PathPlanner Object"""
-    def __init__(self, M, start=None, goal=None):
-        """ """
+    def __init__(self, M, start, goal):
         self.map = M
         self.start = start
         self.goal = goal
-        self.closedSet = self.create_closedSet() if goal != None and start != None else None
-        self.openSet = self.create_openSet() if goal != None and start != None else None
-        self.cameFrom = self.create_cameFrom() if goal != None and start != None else None
-        self.gScore = self.create_gScore() if goal != None and start != None else None
-        self.fScore = self.create_fScore() if goal != None and start != None else None
-        self.path = self.run_search() if self.map and self.start != None and self.goal != None else None
+        self.explored = self.create_explored() #if goal != None and start != None else None
+        self.frontier = self.create_frontier() #if goal != None and start != None else None
+        self.cameFrom = self.create_cameFrom() # if goal != None and start != None else None
+        self.gScore = self.create_gScore() #if goal != None and start != None else None
+        self.fScore = self.create_fScore() #if goal != None and start != None else None
+        self.path = self.run_search() #if self.map and self.start != None and self.goal != None else None
 
     def reconstruct_path(self, current):
         """ Reconstructs path after search """
@@ -24,48 +22,29 @@ class PathPlanner():
             total_path.append(current)
         return total_path
 
-    def _reset(self):
-        """Private method used to reset the closedSet, openSet, cameFrom, gScore, fScore, and path attributes"""
-        self.closedSet = None
-        self.openSet = None
-        self.cameFrom = None
-        self.gScore = None
-        self.fScore = None
-        self.path = self.run_search() if self.map and self.start and self.goal else None
-
     def run_search(self):
-        """ """
-        if self.map == None:
-            raise (ValueError, "Must create map before running search. Try running PathPlanner.set_map(start_node)")
-        if self.goal == None:
-            raise (
-            ValueError, "Must create goal node before running search. Try running PathPlanner.set_goal(start_node)")
-        if self.start == None:
-            raise (
-            ValueError, "Must create start node before running search. Try running PathPlanner.set_start(start_node)")
+        self.explored = self.explored #if self.explored != None else self.create_explored()
+        self.frontier = self.frontier #if self.frontier != None else self.create_frontier()
+        self.cameFrom = self.cameFrom #if self.cameFrom != None else self.create_cameFrom()
+        self.gScore = self.gScore #if self.gScore != None else self.create_gScore()
+        self.fScore = self.fScore #if self.fScore != None else self.create_fScore()
 
-        self.closedSet = self.closedSet if self.closedSet != None else self.create_closedSet()
-        self.openSet = self.openSet if self.openSet != None else self.create_openSet()
-        self.cameFrom = self.cameFrom if self.cameFrom != None else self.create_cameFrom()
-        self.gScore = self.gScore if self.gScore != None else self.create_gScore()
-        self.fScore = self.fScore if self.fScore != None else self.create_fScore()
-
-        while not self.is_open_empty():
+        while not self.is_frontier_empty():
             current = self.get_current_node()
 
             if current == self.goal:
                 self.path = [x for x in reversed(self.reconstruct_path(current))]
                 return self.path
             else:
-                self.openSet.remove(current)
-                self.closedSet.add(current)
+                self.frontier.remove(current)
+                self.explored.add(current)
 
             for neighbor in self.get_neighbors(current):
-                if neighbor in self.closedSet:
+                if neighbor in self.explored:
                     continue  # Ignore the neighbor which is already evaluated.
 
-                if not neighbor in self.openSet:  # Discover a new node
-                    self.openSet.add(neighbor)
+                if not neighbor in self.frontier:  # Discover a new node
+                    self.frontier.add(neighbor)
 
                 # The distance from start to a neighbor
                 # the "dist_between" function may vary as per the solution requirements.
@@ -78,17 +57,13 @@ class PathPlanner():
         self.path = None
         return False
 
-    def create_closedSet(self):
+    def create_explored(self):
         # Creates and returns a data structure suitable to hold the set of nodes already evaluated
         return set()
 
-    def create_openSet(self):
-        """ Creates and returns a data structure suitable to hold the set of currently discovered nodes
-        that are not evaluated yet. Initially, only the start node is known."""
-        if self.start != None:
-            return {self.start}
-        raise (ValueError,
-                "Must create start node before creating an open set. Try running PathPlanner.set_start(start_node)")
+    def create_frontier(self):
+        # a set, initially, only the start node is known."""
+        return {self.start}  # a set
 
     def create_cameFrom(self):
         """Creates and returns a data structure that shows which node can most efficiently be reached from another, for each node."""
@@ -96,10 +71,10 @@ class PathPlanner():
 
     def create_gScore(self):
         """Creates and returns a data structure that holds the cost of getting from the start node to that node,
-        for each node. The cost of going from start to start is zero. The cost of going from start to start is zero. The rest of the node's values should
-        # be set to infinity. """
+        for each node. The cost of going from start to start is zero. The cost of going from start to start is zero.
+        The rest of the node's values should be set to infinity. """
         g_dict = {}
-        nodes = self.map.intersections.keys()
+        nodes = self.map.keys()
         for node in nodes:
             if node == self.start:
                 g_dict[node] = 0
@@ -112,7 +87,7 @@ class PathPlanner():
         by passing by that node, for each node. That value is partly known, partly heuristic.
         For the first node, that value is completely heuristic."""
         f_dict = {}
-        nodes = self.map.intersections.keys()
+        nodes = self.map.keys()
         for node in nodes:
             if node == self.start:
                 f_dict[node] = self.distance(self.start, self.goal)
@@ -120,36 +95,14 @@ class PathPlanner():
                 f_dict[node] = math.inf
         return f_dict
 
-    def set_map(self, M):
-        """Method used to set map attribute """
-        self._reset(self)
-        self.start = None
-        self.goal = None
-        # TODO: Set map to new value.
-        self.map = M
-
-    def set_start(self, start):
-        """Method used to set start attribute """
-        self._reset(self)
-        self.start = start
-
-    def set_goal(self, goal):
-        """Method used to set goal attribute """
-        self._reset(self)
-        self.goal = goal
-
-    def is_open_empty(self):
+    def is_frontier_empty(self):
         """returns True if the open set is empty. False otherwise. """
-        if len(self.openSet) == 0:
-            return True
-        else:
-            return False
+        return len(self.frontier) == 0
 
     def get_current_node(self):
         """ Returns the node in the open set with the lowest value of f(node)."""
         i = 0
-        # print(self.openSet)
-        for n in self.openSet:
+        for n in self.frontier:
             if i == 0:
                 f_min = self.calculate_fScore(n)
                 node_min = n
@@ -163,14 +116,14 @@ class PathPlanner():
 
     def get_neighbors(self, node):
         """Returns the neighbors of a node"""
-        return self.map.roads[node]
+        return self.map[node]['connections']
 
-    def distance(self, node_1, node_2):
+    def distance(self, node1, node2):
         """ Computes the Euclidean L2 Distance"""
-        x1 = self.map.intersections[node_1][0]
-        y1 = self.map.intersections[node_1][1]
-        x2 = self.map.intersections[node_2][0]
-        y2 = self.map.intersections[node_2][1]
+        x1 = self.map[node1]['pos'][0]
+        y1 = self.map[node1]['pos'][1]
+        x2 = self.map[node2]['pos'][0]
+        y2 = self.map[node2]['pos'][1]
         return ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
 
     def get_gScore(self, node):
@@ -178,18 +131,18 @@ class PathPlanner():
         return self.gScore[node]
 
     def get_tentative_gScore(self, current, neighbor):
-        # TReturn the g Score of the current node
+        # Return the g Score of the current node
         # plus distance from the current node to it's neighbors
         return self.get_gScore(current) + self.distance(current, neighbor)
 
-    def heuristic_cost_estimate(self, node):
+    def get_hScore(self, node):
         # Return the heuristic cost estimate of a node
         return self.distance(node, self.goal)
 
     def calculate_fScore(self, node):
         """Calculate the f score of a node. """
         # F = G + H
-        return self.get_gScore(node) + self.heuristic_cost_estimate(node)
+        return self.get_gScore(node) + self.get_hScore(node)
 
     def record_best_path_to(self, current, neighbor):
         """ Record the best path to a node, by updating cameFrom, gScore, and fScore """
