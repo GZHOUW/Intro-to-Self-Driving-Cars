@@ -55,5 +55,5 @@ map_40 = {
     39: {'pos': (0.6315322816286787, 0.7311657634689946), 'connections': [2, 4, 7, 22, 28, 36]}
 }
 planner = PathPlanner.PathPlanner(map_40, 30, 19)
-path = planner.path
+path = planner.bestPath
 print(path)
